@@ -84,11 +84,11 @@ export const verifyUser = async (req: Request, res: Response) => {
       });
     }
 
-    if (existingUser.isVerified) {
-      return res.status(400).json({
-        error: "Email already verified",
-      });
-    }
+    // if (existingUser.isVerified) {
+    //   return res.status(400).json({
+    //     error: "Email already verified",
+    //   });
+    // }
 
     if (!existingUser.otp || !existingUser.otpExpire) {
       return res.status(400).json({
@@ -240,4 +240,128 @@ export const resendOtp = async (req: Request, res: Response) => {
        error: "Something went wrong",
       });
     }
+}
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  try{
+    const {email} = req.body
+    const normalizedEmail = email.toLowerCase()
+    const user = await prisma.user.findUnique({where: {email: normalizedEmail}})
+    if(!user){
+      return res.status(404).json({
+        error: "User not found"
+      })
+    }
+
+    const {otp, otpExpire} = generateOTP()
+
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        otp,
+        otpExpire,
+      },
+    });
+
+    await sendSingleEmail({
+      email: normalizedEmail,
+      html: sendOTPEmail(user.fullName, otp),
+      subject: "FORGOT PASSWORD: VERIFY OTP",
+    });
+
+    res.status(200).json({
+      error: "Forgotten password successful. Please check your email for OTP."
+    })
+
+  }catch(error){
+      console.error("Error creating user or sending OTP:", error);
+      return res.status(500).json({
+       error: "Something went wrong",
+      });
+  }
+}
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try{
+    const {email, password} = req.body
+    const normalizedEmail = email.toLowerCase()
+    const user = await prisma.user.findUnique({where: {email: normalizedEmail}})
+    if(!user){
+      return res.status(404).json({
+        error: "User not found"
+      })
+    }
+
+    const hashed = await bcrypt.hash(password, 10)
+
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        password: hashed,
+        otp: null,
+        otpExpire: null,
+      },
+    });
+
+    res.status(200).json({
+      error: "Password reset successful. You can now log in with your new password."
+    })
+  }catch(error){
+    console.error("Error creating user or sending OTP:", error);
+      return res.status(500).json({
+       error: "Something went wrong",
+      });
+  }
+}
+
+
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    if(!req.user || !req.user.id) {
+      return res.status(401).json({
+        error: 'Unauthorized - Invalid token'
+      })
+    }
+    const {oldPassword, newPassword} = req.body
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+    });
+    if(!user){
+      return res.status(404).json({
+        message: "User not found"
+      })
+    }
+
+    const checkPassword = await bcrypt.compare(oldPassword, user.password);
+
+    if (!checkPassword) {
+      return res.status(400).json({
+        message: "Old password is invalid"
+      })
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10)
+
+    await prisma.user.update({
+      where:{
+        id: user.id
+      },
+      data: {
+        password: hashed
+      },
+    })
+
+    res.status(200).json({
+      error: "Password changed successfully"
+    })
+  } catch (error) {
+    console.error("Error creating user or sending OTP:", error);
+      return res.status(500).json({
+       error: "Something went wrong",
+      });
+  }
 }

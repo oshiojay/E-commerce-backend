@@ -12,7 +12,20 @@ model User {
   fullName  String
   email String @unique
   password String
-  role      String   @default("Client")
+  role      String   @default("User")
+  otpExpire  DateTime?
+  isVerified Boolean   @default(false)
+  otp String? 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Admin {
+  id    String   @id @default(uuid())
+  name  String
+  email String @unique
+  password String
+  role      String   @default("Admin")
   otpExpire  DateTime?
   isVerified Boolean   @default(false)
   otp String? 

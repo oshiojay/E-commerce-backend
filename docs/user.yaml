@@ -139,3 +139,102 @@ paths:
           description: User not found
         "500":
           description: Something went wrong
+
+  /api/v1/forgot-password:
+    post:
+      summary: Request a password reset OTP
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@gmail.com
+      responses:
+        "200":
+          description: Password reset OTP sent by email
+        "400":
+          description: Invalid request body
+        "404":
+          description: User not found
+        "500":
+          description: Something went wrong
+
+  /api/v1/reset-password:
+    post:
+      summary: Reset a user's password
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@gmail.com
+                password:
+                  type: string
+                  minLength: 8
+                  description: Must contain uppercase and lowercase letters, a digit, and a special character.
+                  example: Password123@
+      responses:
+        "200":
+          description: Password reset successfully
+        "400":
+          description: Invalid request body
+        "404":
+          description: User not found
+        "500":
+          description: Something went wrong
+
+  /api/v1/change-password:
+    post:
+      summary: Change the authenticated user's password
+      description: Requires a valid authentication token in the HTTP-only cookie or Authorization bearer header.
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oldPassword
+                - newPassword
+              properties:
+                oldPassword:
+                  type: string
+                  minLength: 8
+                  example: CurrentPass123@
+                newPassword:
+                  type: string
+                  minLength: 8
+                  description: Must contain uppercase and lowercase letters, a digit, and a special character.
+                  example: NewPassword123@
+      responses:
+        "200":
+          description: Password changed successfully
+        "400":
+          description: Invalid request body or old password
+        "401":
+          description: Missing or invalid authentication token
+        "404":
+          description: User not found
+        "500":
+          description: Something went wrong
