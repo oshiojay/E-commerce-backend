@@ -1,0 +1,141 @@
+openapi: 3.0.0
+
+info:
+  title: Novaxcape User API
+  version: 1.0.0
+  description: Documentation for user registration, verification, login, and OTP endpoints
+
+paths:
+  /api/v1/create:
+    post:
+      summary: Create a user account
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fullName
+                - email
+                - password
+              properties:
+                fullName:
+                  type: string
+                  minLength: 4
+                  pattern: '^[A-Za-z\\s-]+$'
+                  example: John Doe
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@gmail.com
+                password:
+                  type: string
+                  minLength: 8
+                  description: Must contain uppercase and lowercase letters, a digit, and a special character.
+                  example: Password123@
+      responses:
+        "201":
+          description: User created; a verification OTP was sent by email
+        "400":
+          description: Invalid request body
+        "404":
+          description: A user with this email already exists
+        "500":
+          description: Something went wrong
+
+  /api/v1/verify:
+    post:
+      summary: Verify a user's email address
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@gmail.com
+                otp:
+                  type: string
+                  pattern: '^\\d{6}$'
+                  example: "123456"
+      responses:
+        "200":
+          description: Email verified successfully
+        "400":
+          description: Invalid, expired, or already used OTP; or email is already verified
+        "404":
+          description: User not found
+        "500":
+          description: Something went wrong
+
+  /api/v1/login:
+    post:
+      summary: Log in a user
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@gmail.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: Password123@
+      responses:
+        "200":
+          description: Login successful; an authentication token is set in an HTTP-only cookie
+        "400":
+          description: Invalid credentials or email is not verified
+        "404":
+          description: Invalid credentials
+        "500":
+          description: Something went wrong
+
+  /api/v1/resend:
+    post:
+      summary: Resend the email verification OTP
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@gmail.com
+      responses:
+        "200":
+          description: OTP resent successfully
+        "400":
+          description: Invalid request body
+        "404":
+          description: User not found
+        "500":
+          description: Something went wrong

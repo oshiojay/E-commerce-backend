@@ -1,11 +1,23 @@
  import express from "express"
  import prisma from "./config/prisma"
+ import cookieParser from "cookie-parser"
+ import swaggerUi from "swagger-ui-express"
+ import swagger from "./swagger"
+ import cors from "cors"
 
-//  import userRoutes from "./routes/user"
+import userRoutes from "./routes/user"
  const app = express()
  app.use(express.json())
+ app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true
+}))
 
-//  app.use(userRoutes)
+ app.use(cookieParser())
+
+ app.use('/apisDocs', swaggerUi.serve, swaggerUi.setup(swagger))
+
+ app.use('/api/v1', userRoutes)
  const PORT = process.env.PORT
 
  const databaseConnection = async () => {
