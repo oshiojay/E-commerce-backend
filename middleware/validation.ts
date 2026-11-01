@@ -105,3 +105,72 @@ export const resendOtpValidation = (req: Request, res: Response, next: NextFunct
     req.body = value;
     next();
 };
+
+export const forgotPasswordValidation = (req: Request, res: Response, next: NextFunction) => {
+    const schema = joi.object({
+        email: joi.string().trim().lowercase().email().required().messages({
+            'any.required': 'Email is required',
+            'string.empty': 'Email cannot be empty',
+            'string.email': 'Email must be a valid email'
+        })
+    });
+
+    const { error, value } = schema.validate(req.body, { abortEarly: false, convert: true });
+
+    if (error) {
+        return handleValidationError(res, error);
+    }
+
+    req.body = value;
+    next();
+};
+
+export const resetPasswordValidation = (req: Request, res: Response, next: NextFunction) => {
+    const schema = joi.object({
+        email: joi.string().trim().lowercase().email().required().messages({
+            'any.required': 'Email is required',
+            'string.empty': 'Email cannot be empty',
+            'string.email': 'Email must be a valid email'
+        }),
+        password: joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_\-+=])[A-Za-z\d@$!%*?&.#^()_\-+=]+$/).required().messages({
+            'any.required': 'Password is required',
+            'string.empty': 'Password cannot be empty',
+            'string.min': 'Password must be at least 8 characters',
+            'string.pattern.base': 'Password must include at least one uppercase, one lowercase, one digit and one special character'
+        })
+    });
+
+    const { error, value } = schema.validate(req.body, { abortEarly: false, convert: true });
+
+    if (error) {
+        return handleValidationError(res, error);
+    }
+
+    req.body = value;
+    next();
+};
+
+export const changePasswordValidation = (req: Request, res: Response, next: NextFunction) => {
+    const schema = joi.object({
+        oldPassword: joi.string().min(8).required().messages({
+            'any.required': 'Old password is required',
+            'string.empty': 'Old password cannot be empty',
+            'string.min': 'Old password must be at least 8 characters'
+        }),
+        newPassword: joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_\-+=])[A-Za-z\d@$!%*?&.#^()_\-+=]+$/).required().messages({
+            'any.required': 'New password is required',
+            'string.empty': 'New password cannot be empty',
+            'string.min': 'New password must be at least 8 characters',
+            'string.pattern.base': 'New password must include at least one uppercase, one lowercase, one digit and one special character'
+        })
+    });
+
+    const { error, value } = schema.validate(req.body, { abortEarly: false, convert: true });
+
+    if (error) {
+        return handleValidationError(res, error);
+    }
+
+    req.body = value;
+    next();
+};

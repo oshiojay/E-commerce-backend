@@ -6,6 +6,8 @@
  import cors from "cors"
 
 import userRoutes from "./routes/user"
+import adminRoutes from "./routes/admin"
+
  const app = express()
  app.use(express.json())
  app.use(cors({
@@ -18,6 +20,8 @@ import userRoutes from "./routes/user"
  app.use('/apisDocs', swaggerUi.serve, swaggerUi.setup(swagger))
 
  app.use('/api/v1', userRoutes)
+ app.use('/api/v1/admin', adminRoutes)
+ 
  const PORT = process.env.PORT
 
  const databaseConnection = async () => {

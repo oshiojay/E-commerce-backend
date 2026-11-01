@@ -5,7 +5,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 declare global {
   namespace Express {
     interface Request {
-      user?: string | JwtPayload;
+      user?: JwtPayload & { id: string; role?: string };
     }
   }
 }
@@ -29,7 +29,13 @@ export const authenticateToken = (
       throw new Error("SECRET_KEY is not configured");
     }
 
-    req.user = jwt.verify(token, secret);
+    const decoded = jwt.verify(token, secret);
+    if (typeof decoded === "string" || typeof decoded.id !== "string") {
+      res.status(401).json({ message: "Invalid token payload" });
+      return;
+    }
+
+    req.user = decoded as JwtPayload & { id: string; role?: string };
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
@@ -39,4 +45,18 @@ export const authenticateToken = (
     }
     next(error);
   }
+};
+
+
+export const userAuth = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  if (!req.user || req.user.role !== "User") {
+    res.status(403).json({ message: "Access denied" });
+    return;
+  }
+
+  next();
 };
