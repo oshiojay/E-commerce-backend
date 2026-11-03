@@ -1,0 +1,258 @@
+openapi: 3.0.0
+
+info:
+  title: Novaxcape Admin API
+  version: 1.0.0
+  description: Documentation for admin registration, verification, authentication, and password management
+
+paths:
+  /api/v1/admin/create:
+    post:
+      summary: Create an admin account
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  minLength: 4
+                  pattern: "^[A-Za-z\\s.'-]+$"
+                  example: "J. O'Connor"
+                email:
+                  type: string
+                  format: email
+                  example: admin@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_\-+=])[A-Za-z\d@$!%*?&.#^()_\-+=]+$'
+                  description: Must contain uppercase and lowercase letters, a digit, and a special character.
+                  example: Password123@
+      responses:
+        "201":
+          description: Admin account created; a verification OTP was sent by email
+        "400":
+          description: Invalid request body
+        "404":
+          description: An admin with this email already exists
+        "500":
+          description: Something went wrong
+
+  /api/v1/admin/verify:
+    post:
+      summary: Verify an admin email address
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otp
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@example.com
+                otp:
+                  type: string
+                  pattern: '^\d{6}$'
+                  example: "123456"
+      responses:
+        "200":
+          description: Email verified successfully
+        "400":
+          description: Invalid, expired, or unavailable OTP
+        "404":
+          description: Admin not found
+        "500":
+          description: Something went wrong
+
+  /api/v1/admin/login:
+    post:
+      summary: Log in an admin
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: Password123@
+      responses:
+        "200":
+          description: Login successful; an authentication token is set in an HTTP-only cookie
+        "400":
+          description: Invalid credentials or email is not verified
+        "404":
+          description: Admin not found or invalid credentials
+        "500":
+          description: Something went wrong
+
+  /api/v1/admin/resend-otp:
+    post:
+      summary: Resend the admin verification OTP
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@example.com
+      responses:
+        "200":
+          description: Verification OTP resent successfully
+        "400":
+          description: Invalid request body
+        "404":
+          description: Admin not found
+        "500":
+          description: Something went wrong
+
+  /api/v1/admin/forgot-password:
+    post:
+      summary: Request an admin password reset OTP
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@example.com
+      responses:
+        "200":
+          description: Password reset OTP sent by email
+        "400":
+          description: Invalid request body
+        "404":
+          description: Admin not found
+        "500":
+          description: Something went wrong
+
+  /api/v1/admin/reset-password:
+    post:
+      summary: Reset an admin password
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: admin@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_\-+=])[A-Za-z\d@$!%*?&.#^()_\-+=]+$'
+                  description: Must contain uppercase and lowercase letters, a digit, and a special character.
+                  example: NewPassword123@
+      responses:
+        "200":
+          description: Password reset successfully
+        "400":
+          description: Invalid request body
+        "404":
+          description: Admin not found
+        "500":
+          description: Something went wrong
+
+  /api/v1/admin/change-password:
+    post:
+      summary: Change the authenticated admin's password
+      description: Requires a valid admin authentication token in the HTTP-only cookie or Authorization bearer header.
+      tags:
+        - Admin
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oldPassword
+                - newPassword
+              properties:
+                oldPassword:
+                  type: string
+                  minLength: 8
+                  example: CurrentPass123@
+                newPassword:
+                  type: string
+                  minLength: 8
+                  pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_\-+=])[A-Za-z\d@$!%*?&.#^()_\-+=]+$'
+                  description: Must contain uppercase and lowercase letters, a digit, and a special character.
+                  example: NewPassword123@
+      responses:
+        "200":
+          description: Password changed successfully
+        "400":
+          description: Invalid request body or old password
+        "401":
+          description: Missing or invalid authentication token
+        "403":
+          description: Token does not belong to an admin
+        "404":
+          description: Admin not found
+        "500":
+          description: Something went wrong
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token

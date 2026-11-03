@@ -60,3 +60,16 @@ export const userAuth = (
 
   next();
 };
+
+export const adminAuth = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  if (!req.user || req.user.role !== "Admin") {
+    res.status(403).json({ message: "Access denied" });
+    return;
+  }
+
+  next();
+};

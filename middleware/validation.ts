@@ -174,3 +174,34 @@ export const changePasswordValidation = (req: Request, res: Response, next: Next
     req.body = value;
     next();
 };
+
+export const createAdminValidation = (req: Request, res: Response, next: NextFunction) => {
+    const schema = joi.object({
+        name: joi.string().trim().min(4).pattern(/^[A-Za-z\s.'-]+$/).required().messages({
+            'any.required': 'Name is required',
+            'string.empty': 'Name cannot be empty',
+            'string.min': 'Name must be at least 4 characters',
+            'string.pattern.base': 'Name may only include letters, spaces, periods, apostrophes, and hyphens'
+        }),
+        email: joi.string().trim().lowercase().email().required().messages({
+            'any.required': 'Email is required',
+            'string.empty': 'Email cannot be empty',
+            'string.email': 'Email must be a valid email'
+        }),
+        password: joi.string().min(8).pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_\-+=])[A-Za-z\d@$!%*?&.#^()_\-+=]+$/).required().messages({
+            'any.required': 'Password is required',
+            'string.empty': 'Password cannot be empty',
+            'string.min': 'Password must be at least 8 characters',
+            'string.pattern.base': 'Password must include at least one uppercase, one lowercase, one digit and one special character'
+        })
+    });
+
+    const { error, value } = schema.validate(req.body, { abortEarly: false, convert: true });
+
+    if (error) {
+        return handleValidationError(res, error);
+    }
+
+    req.body = value;
+    next();
+};
