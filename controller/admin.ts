@@ -26,7 +26,7 @@ export const generateOTP = (): OTPData => {
 
 export const createAdmin = async (req: Request, res: Response) => {
     try {
-        const {name, email, password} = req.body
+        const {name, email, password, phoneNumber, storeName} = req.body
         const normalizedEmail = email.toLowerCase();
         const existingUser = await prisma.admin.findUnique({where: {email: normalizedEmail}})
         if(existingUser){
@@ -42,6 +42,8 @@ export const createAdmin = async (req: Request, res: Response) => {
                 name,
                 email: normalizedEmail,
                 password: hashed,
+                phoneNumber,
+                storeName,
                 otp,
                 otpExpire
             }
@@ -94,7 +96,7 @@ export const verifyAdmin = async (req: Request, res: Response) => {
       });
     }
 
-    await prisma.user.update({
+    await prisma.admin.update({
       where: {
         id: user.id,
       },

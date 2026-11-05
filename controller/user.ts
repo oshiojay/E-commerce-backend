@@ -26,7 +26,7 @@ export const generateOTP = (): OTPData => {
 
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { fullName, email, password } = req.body;
+    const { fullName, email, password, phoneNumber } = req.body;
     const normalizedEmail = email.toLowerCase();
     const existingUser = await prisma.user.findUnique({
       where: { email: normalizedEmail },
@@ -45,6 +45,7 @@ export const createUser = async (req: Request, res: Response) => {
         fullName,
         email: normalizedEmail,
         password: hashed,
+        phoneNumber,
         otp,
         otpExpire,
       },
