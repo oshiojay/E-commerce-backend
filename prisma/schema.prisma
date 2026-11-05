@@ -11,6 +11,7 @@ model User {
   id    String   @id @default(uuid())
   fullName  String
   email String @unique
+  phoneNumber String
   password String
   role      String   @default("User")
   otpExpire  DateTime?
@@ -23,12 +24,38 @@ model User {
 model Admin {
   id    String   @id @default(uuid())
   name  String
+  storeName String
+  phoneNumber String
   email String @unique
   password String
   role      String   @default("Admin")
   otpExpire  DateTime?
   isVerified Boolean   @default(false)
   otp String? 
+  products       Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Category {
+  Health
+  Audio
+  Living
+  Wearables
+  DeskSetupAndPeripherals
+}
+
+model Product {
+  id    String   @id @default(uuid())
+  productTitle String
+  category Category 
+  description String
+  quantity Int
+  colour String
+  price Int
+  adminId      String
+  admin Admin @relation(fields: [adminId], references: [id])
+  productPhoto String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

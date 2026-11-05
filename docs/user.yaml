@@ -27,6 +27,11 @@ paths:
                   minLength: 4
                   pattern: '^[A-Za-z\\s-]+$'
                   example: John Doe
+                phoneNumber:
+                  type: string
+                  pattern: '^\\d{7,15}$'
+                  description: Optional phone number containing 7 to 15 digits.
+                  example: "12025550123"
                 email:
                   type: string
                   format: email

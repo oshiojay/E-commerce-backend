@@ -19,6 +19,8 @@ paths:
               type: object
               required:
                 - name
+                - storeName
+                - phoneNumber
                 - email
                 - password
               properties:
@@ -27,6 +29,16 @@ paths:
                   minLength: 4
                   pattern: "^[A-Za-z\\s.'-]+$"
                   example: "J. O'Connor"
+                storeName:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  example: "O'Connor's Market"
+                phoneNumber:
+                  type: string
+                  pattern: '^\\d{7,15}$'
+                  description: Phone number containing 7 to 15 digits.
+                  example: "12025550123"
                 email:
                   type: string
                   format: email

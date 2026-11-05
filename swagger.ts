@@ -13,6 +13,10 @@ const options = {
 
                 url:"http://localhost:6565",
                 description: 'hosted URL'
+        },
+        {
+            url:"https://e-commerce-backend-0l5v.onrender.com",
+            description: "The hosted Route"
         }
         ],
         components:{

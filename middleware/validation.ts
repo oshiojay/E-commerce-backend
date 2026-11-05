@@ -25,7 +25,12 @@ export const clientReg = (req: Request, res: Response, next: NextFunction) => {
             'string.empty': 'Password cannot be empty',
             'string.min': 'Password must be at least 8 characters',
             'string.pattern.base': 'Password must include at least one uppercase, one lowercase, one digit and one special character'
-        })
+        }),
+        phoneNumber: joi.string().trim().pattern(/^\d{7,15}$/).required().messages({
+            'any.required': 'Phone number is required',
+            'string.empty': 'Phone number cannot be empty',
+            'string.pattern.base': 'Phone number must contain 7 to 15 digits'
+        }),
     })
 
     const { error, value } = schema.validate(req.body, { abortEarly: false, convert: true });
@@ -182,6 +187,17 @@ export const createAdminValidation = (req: Request, res: Response, next: NextFun
             'string.empty': 'Name cannot be empty',
             'string.min': 'Name must be at least 4 characters',
             'string.pattern.base': 'Name may only include letters, spaces, periods, apostrophes, and hyphens'
+        }),
+        storeName: joi.string().trim().min(2).max(100).required().messages({
+            'any.required': 'Store name is required',
+            'string.empty': 'Store name cannot be empty',
+            'string.min': 'Store name must be at least 2 characters',
+            'string.max': 'Store name must be at most 100 characters'
+        }),
+        phoneNumber: joi.string().trim().pattern(/^\d{7,15}$/).required().messages({
+            'any.required': 'Phone number is required',
+            'string.empty': 'Phone number cannot be empty',
+            'string.pattern.base': 'Phone number must contain 7 to 15 digits'
         }),
         email: joi.string().trim().lowercase().email().required().messages({
             'any.required': 'Email is required',
