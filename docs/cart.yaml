@@ -1,0 +1,297 @@
+openapi: 3.0.0
+info:
+  title: Novaxcape Cart API
+  version: 1.0.0
+  description: Documentation for shopping cart endpoints
+tags:
+  - name: Cart
+    description: Manage the authenticated user's shopping cart.
+
+paths:
+  /api/v1/cart/add/{productId}:
+    post:
+      summary: Add a product to the cart
+      description: Adds the requested quantity, or increases the quantity of the existing cart line. The total must not exceed the product's available stock.
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          description: UUID v4 of the product to add.
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quantity
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                  description: Quantity to add to the cart.
+                  example: 2
+      responses:
+        "201":
+          description: Product added to the cart.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Added to cart
+                  item:
+                    $ref: '#/components/schemas/CartItem'
+        "400":
+          description: Invalid quantity or the requested total exceeds available stock.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartError'
+        "401":
+          description: Authentication token is missing, invalid, or expired.
+        "403":
+          description: The authenticated account is not a user.
+        "404":
+          description: User or product not found.
+        "500":
+          description: Internal server error.
+
+  /api/v1/cart/get:
+    get:
+      summary: Get the authenticated user's cart
+      description: Returns cart lines in creation order, with their full product details, subtotal, and total item quantity. An empty cart is returned when no cart exists yet.
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Cart retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                  - items
+                  - subtotal
+                  - itemCount
+                properties:
+                  message:
+                    type: string
+                    example: Cart fetched successfully
+                  items:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/CartItem'
+                        - type: object
+                          required:
+                            - product
+                          properties:
+                            product:
+                              $ref: '#/components/schemas/CartProduct'
+                  subtotal:
+                    type: integer
+                    description: Sum of each product's unit price multiplied by its cart quantity.
+                    example: 70000
+                  itemCount:
+                    type: integer
+                    description: Sum of quantities across all cart lines.
+                    example: 2
+        "401":
+          description: Authentication token is missing, invalid, or expired.
+        "403":
+          description: The authenticated account is not a user.
+        "500":
+          description: Internal server error.
+
+  /api/v1/cart/update/{itemId}:
+    put:
+      summary: Set a cart item's quantity
+      description: Sets the cart line to the requested quantity. A quantity of zero removes the line.
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          description: UUID v4 of the cart item.
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quantity
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 0
+                  description: New quantity; zero removes the item.
+                  example: 3
+      responses:
+        "200":
+          description: Cart line quantity updated, or cart line removed when quantity is zero.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Cart updated successfully
+                      item:
+                        $ref: '#/components/schemas/CartItem'
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Item removed from cart successfully
+        "400":
+          description: Invalid quantity or requested quantity exceeds available stock.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartError'
+        "401":
+          description: Authentication token is missing, invalid, or expired.
+        "403":
+          description: The authenticated account is not a user.
+        "404":
+          description: Cart item not found for this user.
+        "500":
+          description: Internal server error.
+
+  /api/v1/cart/remove/{itemId}:
+    delete:
+      summary: Remove an item from the cart
+      tags:
+        - Cart
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          description: UUID v4 of the cart item.
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440001
+      responses:
+        "200":
+          description: Cart item removed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Item removed from cart successfully
+        "400":
+          description: Invalid cart item ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartError'
+        "401":
+          description: Authentication token is missing, invalid, or expired.
+        "403":
+          description: The authenticated account is not a user.
+        "404":
+          description: Cart item not found for this user.
+        "500":
+          description: Internal server error.
+
+components:
+  schemas:
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        cartId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CartProduct:
+      type: object
+      description: Product details included with each cart line.
+      properties:
+        id:
+          type: string
+          format: uuid
+        productTitle:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        quantity:
+          type: integer
+          description: Current available stock.
+        colour:
+          type: string
+        price:
+          type: integer
+        adminId:
+          type: string
+          format: uuid
+        productPhoto:
+          type: array
+          items:
+            type: string
+            format: uri
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CartError:
+      type: object
+      properties:
+        message:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: Quantity must be at least 1

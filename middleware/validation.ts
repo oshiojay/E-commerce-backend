@@ -221,3 +221,126 @@ export const createAdminValidation = (req: Request, res: Response, next: NextFun
     req.body = value;
     next();
 };
+
+export const createProductValidation = (req: Request, res: Response, next: NextFunction) => {
+    const schema = joi.object({
+        productTitle: joi.string().trim().min(3).max(100).required().messages({
+            'any.required': 'Product title is required',
+            'string.empty': 'Product title cannot be empty',
+            'string.min': 'Product title must be at least 3 characters',
+            'string.max': 'Product title must be at most 100 characters'
+        }),
+        category: joi.string().valid('Health', 'Audio', 'Living', 'Wearables', 'DeskSetupAndPeripherals').required().messages({
+            'any.required': 'Category is required',
+            'string.empty': 'Category cannot be empty',
+            'any.only': 'Category must be one of Health, Audio, Living, Wearables, or DeskSetupAndPeripherals'
+        }),
+        description: joi.string().trim().min(10).max(1000).required().messages({
+            'any.required': 'Description is required',
+            'string.empty': 'Description cannot be empty',
+            'string.min': 'Description must be at least 10 characters',
+            'string.max': 'Description must be at most 1000 characters'
+        }),
+        quantity: joi.number().integer().min(1).required().messages({
+            'any.required': 'Quantity is required',
+            'number.base': 'Quantity must be a number',
+            'number.integer': 'Quantity must be a whole number',
+            'number.min': 'Quantity must be at least 1'
+        }),
+        colour: joi.string().trim().min(2).pattern(/^[A-Za-z\s-]+$/).required().messages({
+            'any.required': 'Colour is required',
+            'string.empty': 'Colour cannot be empty',
+            'string.min': 'Colour must be at least 2 characters',
+            'string.pattern.base': 'Colour can only contain letters, spaces, and hyphens'
+        }),
+        price: joi.number().integer().min(1).required().messages({
+            'any.required': 'Price is required',
+            'number.base': 'Price must be a number',
+            'number.integer': 'Price must be a whole number',
+            'number.min': 'Price must be at least 1'
+        })
+    });
+
+    const { error, value } = schema.validate(req.body, { abortEarly: false, convert: true });
+
+    if (error) {
+        return handleValidationError(res, error);
+    }
+
+    req.body = value;
+    next();
+};
+
+export const addToCartValidation = (req: Request, res: Response, next: NextFunction) => {
+    const schema = joi.object({
+        quantity: joi.number().integer().min(1).required().messages({
+            'any.required': 'Quantity is required',
+            'number.base': 'Quantity must be a number',
+            'number.integer': 'Quantity must be a whole number',
+            'number.min': 'Quantity must be at least 1'
+        })
+    }).required();
+
+    const { error, value } = schema.validate(req.body, { abortEarly: false, convert: true });
+
+    if (error) {
+        return handleValidationError(res, error);
+    }
+
+    req.body = value;
+    next();
+};
+
+export const updateCartItemValidation = (req: Request, res: Response, next: NextFunction) => {
+    const schema = joi.object({
+        quantity: joi.number().integer().min(0).required().messages({
+            'any.required': 'Quantity is required',
+            'number.base': 'Quantity must be a number',
+            'number.integer': 'Quantity must be a whole number',
+            'number.min': 'Quantity cannot be negative'
+        })
+    });
+
+    const { error, value } = schema.validate(req.body, { abortEarly: false, convert: true });
+
+    if (error) {
+        return handleValidationError(res, error);
+    }
+
+    req.body = value;
+    next();
+};
+
+export const cartProductIdValidation = (req: Request, res: Response, next: NextFunction) => {
+    const schema = joi.object({
+        productId: joi.string().guid({ version: ['uuidv4'] }).required().messages({
+            'any.required': 'Product ID is required',
+            'string.guid': 'Product ID must be a valid UUID'
+        })
+    });
+
+    const { error } = schema.validate(req.params, { abortEarly: false });
+
+    if (error) {
+        return handleValidationError(res, error);
+    }
+
+    next();
+};
+
+export const cartItemIdValidation = (req: Request, res: Response, next: NextFunction) => {
+    const schema = joi.object({
+        itemId: joi.string().guid({ version: ['uuidv4'] }).required().messages({
+            'any.required': 'Cart item ID is required',
+            'string.guid': 'Cart item ID must be a valid UUID'
+        })
+    });
+
+    const { error } = schema.validate(req.params, { abortEarly: false });
+
+    if (error) {
+        return handleValidationError(res, error);
+    }
+
+    next();
+};

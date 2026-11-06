@@ -31,7 +31,9 @@ const options = {
     },
     apis: [
       "./docs/user.yaml",
-      "./docs/admin.yaml"
+      "./docs/admin.yaml",
+        "./docs/product.yaml",
+        "./docs/cart.yaml"
     ]
 }
 

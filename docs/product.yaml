@@ -1,0 +1,156 @@
+openapi: 3.0.0
+
+info:
+  title: Novaxcape Product API
+  version: 1.0.0
+  description: Documentation for creating and viewing products
+
+paths:
+  /api/v1/product/create:
+    post:
+      summary: Create a product
+      tags:
+        - Product
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - productTitle
+                - category
+                - description
+                - quantity
+                - colour
+                - price
+                - productPhoto
+              properties:
+                productTitle:
+                  type: string
+                  minLength: 3
+                  maxLength: 100
+                  example: Wireless Noise Cancelling Headphones
+                category:
+                  type: string
+                  enum:
+                    - Health
+                    - Audio
+                    - Living
+                    - Wearables
+                    - DeskSetupAndPeripherals
+                  example: Audio
+                description:
+                  type: string
+                  minLength: 10
+                  maxLength: 1000
+                  example: Premium over-ear headphones with immersive sound and a 30-hour battery life.
+                quantity:
+                  type: integer
+                  minimum: 1
+                  example: 25
+                colour:
+                  type: string
+                  minLength: 2
+                  pattern: '^[A-Za-z\s-]+$'
+                  example: Black
+                price:
+                  type: integer
+                  minimum: 1
+                  example: 35000
+                productPhoto:
+                  type: array
+                  maxItems: 6
+                  items:
+                    type: string
+                    format: binary
+                  description: Up to 6 product image files.
+      responses:
+        "201":
+          description: Product created successfully
+        "400":
+          description: Invalid request body or missing product image
+        "401":
+          description: Token missing or invalid
+        "403":
+          description: Access denied; admin role required
+        "404":
+          description: Admin not found
+        "500":
+          description: Something went wrong
+
+  /api/v1/product/getAllProducts:
+    post:
+      summary: Get all products for the authenticated user
+      tags:
+        - Product
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successfully returned all products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        "401":
+          description: Token missing or invalid
+        "403":
+          description: Access denied; user role required
+        "404":
+          description: User not found
+        "500":
+          description: Something went wrong
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        productTitle:
+          type: string
+        category:
+          type: string
+          enum:
+            - Health
+            - Audio
+            - Living
+            - Wearables
+            - DeskSetupAndPeripherals
+        description:
+          type: string
+        quantity:
+          type: integer
+        colour:
+          type: string
+        price:
+          type: integer
+        productPhoto:
+          type: array
+          items:
+            type: string
+            format: uri
+        adminId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
