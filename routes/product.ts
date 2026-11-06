@@ -1,5 +1,5 @@
 import {Router} from "express";
-import { createProduct, getAllForUser} from "../controller/product";
+import { createProduct, getAllForUser, getAllForAdmin } from "../controller/product";
 import { authenticateToken, adminAuth, userAuth } from "../middleware/auth";
 import { upload } from "../middleware/multer";
 import { createProductValidation } from "../middleware/validation";
@@ -14,6 +14,8 @@ router.post(
   createProductValidation,
   createProduct
 );
-router.post("/getAllProducts", authenticateToken, userAuth, getAllForUser);
+router.get("/getAllProducts", authenticateToken, userAuth, getAllForUser);
+
+router.get("/getAllProductsForAdmin", authenticateToken, adminAuth, getAllForAdmin);
 
 export default router

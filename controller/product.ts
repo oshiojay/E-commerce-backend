@@ -84,9 +84,44 @@ export const getAllForUser = async (req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
     });
 
-    return res.status(200).json({ products });
+    return res.status(200).json({ 
+      products,
+      count: products.length
+     });
   } catch (error) {
     console.error("Error fetching products:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+    return res.status(500).json({ 
+      error: "Something went wrong" 
+    });
   }
 };
+
+
+export const getAllForAdmin = async (req: Request, res: Response) => {
+  try {
+    const adminId = (req.user as JwtPayload).id;
+
+    if (!adminId) {
+      return res.status(400).json({ 
+        error: "admin not found" 
+      });
+    }
+
+    const products = await prisma.product.findMany({
+      where: { adminId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return res.status(200).json({
+      count: products.length,
+      products,
+    });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return res.status(500).json({
+      error: "Something went wrong",
+    });
+  }
+};
+
+

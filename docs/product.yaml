@@ -82,7 +82,7 @@ paths:
           description: Something went wrong
 
   /api/v1/product/getAllProducts:
-    post:
+    get:
       summary: Get all products for the authenticated user
       tags:
         - Product
@@ -96,6 +96,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  count:
+                    type: integer
+                    example: 25
                   products:
                     type: array
                     items:
@@ -106,6 +109,37 @@ paths:
           description: Access denied; user role required
         "404":
           description: User not found
+        "500":
+          description: Something went wrong
+
+  /api/v1/product/getAllProductsForAdmin:
+    get:
+      summary: Get products created by the authenticated admin
+      tags:
+        - Product
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successfully returned the admin's products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 10
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        "400":
+          description: Admin ID is missing from the token
+        "401":
+          description: Token missing or invalid
+        "403":
+          description: Access denied; admin role required
         "500":
           description: Something went wrong
 
