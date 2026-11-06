@@ -8,6 +8,7 @@
 import userRoutes from "./routes/user"
 import adminRoutes from "./routes/admin"
 import productRoutes from "./routes/product"
+import cartRoutes from "./routes/cart"
 
  const app = express()
  app.use(express.json())
@@ -31,6 +32,7 @@ app.use(
  app.use('/api/v1', userRoutes)
  app.use('/api/v1/admin', adminRoutes)
  app.use('/api/v1/product', productRoutes)
+ app.use('/api/v1/cart', cartRoutes)
  const PORT = process.env.PORT
 
  const databaseConnection = async () => {

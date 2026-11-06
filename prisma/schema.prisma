@@ -17,6 +17,7 @@ model User {
   otpExpire  DateTime?
   isVerified Boolean   @default(false)
   otp String? 
+  cart  Cart?          
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -56,6 +57,54 @@ model Product {
   adminId      String
   admin Admin @relation(fields: [adminId], references: [id])
   productPhoto String[]
+  cartItems CartItem[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+}
+
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+model Order {
+  id        String      @id @default(uuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+  items     Json        // [{ productId, adminId, productTitle, unitPrice, quantity }]
+  subtotal  Int
+  shipping  Int         @default(0)
+  tax       Int         @default(0)
+  total     Int
+  status    OrderStatus @default(PENDING)
+  paymentRef String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }
