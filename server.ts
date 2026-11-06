@@ -7,13 +7,22 @@
 
 import userRoutes from "./routes/user"
 import adminRoutes from "./routes/admin"
+import productRoutes from "./routes/product"
 
  const app = express()
  app.use(express.json())
- app.use(cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true
-}))
+ const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "https://e-commerce-backend-0l5v.onrender.com",
+].filter(Boolean) as string[];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 
  app.use(cookieParser())
 
@@ -21,7 +30,7 @@ import adminRoutes from "./routes/admin"
 
  app.use('/api/v1', userRoutes)
  app.use('/api/v1/admin', adminRoutes)
- 
+ app.use('/api/v1/product', productRoutes)
  const PORT = process.env.PORT
 
  const databaseConnection = async () => {
