@@ -17,7 +17,8 @@ model User {
   otpExpire  DateTime?
   isVerified Boolean   @default(false)
   otp String? 
-  cart  Cart?          
+  cart  Cart?    
+  orders Order[]       
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
