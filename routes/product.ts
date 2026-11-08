@@ -1,5 +1,5 @@
 import {Router} from "express";
-import { createProduct, getAllForUser, getAllForAdmin } from "../controller/product";
+import { createProduct, getAllForUser, getAllForAdmin, getProductByCategory, getOne, updateProduct } from "../controller/product";
 import { authenticateToken, adminAuth, userAuth } from "../middleware/auth";
 import { upload } from "../middleware/multer";
 import { createProductValidation } from "../middleware/validation";
@@ -17,5 +17,11 @@ router.post(
 router.get("/getAllProducts", authenticateToken, userAuth, getAllForUser);
 
 router.get("/getAllProductsForAdmin", authenticateToken, adminAuth, getAllForAdmin);
+
+router.get("/getByCategory", authenticateToken, userAuth, getProductByCategory)
+
+router.get("/getOne/:id", authenticateToken, userAuth, getOne)
+
+router.put("/update/:id", authenticateToken, adminAuth, updateProduct)
 
 export default router

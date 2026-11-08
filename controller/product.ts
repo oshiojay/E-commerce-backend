@@ -3,6 +3,7 @@ import { JwtPayload } from "jsonwebtoken"
 import prisma from "../config/prisma"
 import cloudinary from "../middleware/cloudinary"
 import fs from "fs/promises"
+import { Category } from "@prisma/client"
 
 export const createProduct = async (req: Request, res: Response) => {
     const files = (req.files as Express.Multer.File[]) ?? [];
@@ -116,6 +117,7 @@ export const getAllForAdmin = async (req: Request, res: Response) => {
       count: products.length,
       products,
     });
+
   } catch (error) {
     console.error("Error fetching products:", error);
     return res.status(500).json({
@@ -125,3 +127,131 @@ export const getAllForAdmin = async (req: Request, res: Response) => {
 };
 
 
+export const getProductByCategory = async (req: Request, res: Response) => {
+    try {
+        const category = req.params.category as string;
+        const userId = (req.user as JwtPayload).id
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        const products = await prisma.product.findMany({
+            where: { category: category as Category},
+            orderBy: { createdAt: "desc"}
+            });
+
+        if (products.length === 0) {
+            return res.status(404).json({
+                message: "No products found in this category"
+            });
+        }
+
+        return res.status(200).json({
+            message: "Products fetched successfully",
+            products
+        });
+
+    } catch (error) {
+        console.log("Error fetching products:", error);
+
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+};
+
+export const getOne = async (req: Request, res: Response) => {
+  try {
+    const productId = req.query.productId as string;
+    const userId = (req.user as JwtPayload).id
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId
+      }
+    })
+    if(!user){
+      return res.status(404).json({
+        error: "User not found"
+      })
+    }
+
+    const product = await prisma.product.findUnique({
+      where: {
+        id: productId
+      }
+    })
+
+    if(!product){
+      return res.status(404).json({
+        error: "Product not found"
+      })
+    }
+
+    res.status(200).json({
+      message: "Gotten one product successfully",
+      product
+    })
+  } catch (error) {
+      console.log("Error fetching products:", error);
+
+      return res.status(500).json({
+            message: "Internal server error"
+        });
+  }
+}
+
+
+export const updateProduct = async (req: Request, res: Response) => {
+  try {
+    const productId = req.params.productId as string;
+    const adminId = (req.user as JwtPayload).id
+
+    const admin = await prisma.admin.findUnique({
+      where: {
+        id: adminId
+      }
+    })
+
+    if(!admin){
+      return res.status(404).json({
+        error: "Admin not found"
+      })
+    }
+
+    const {productTitle, category, description, quantity, colour, price} = req.body
+
+    const updatedProduct = await prisma.product.update({
+      where: {
+        id: productId
+      },
+      data: {
+        productTitle,
+        category,
+        description,
+        quantity,
+        colour,
+        price
+      }
+    })
+
+    res.status(200).json({
+      message: "Product updated successfully",
+      updatedProduct
+    })
+  } catch (error) {
+    console.log("Error fetching products:", error);
+
+      return res.status(500).json({
+            message: "Internal server error"
+        });
+  }
+}
