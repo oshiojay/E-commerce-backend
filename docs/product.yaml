@@ -1,14 +1,17 @@
 openapi: 3.0.0
-
 info:
   title: Novaxcape Product API
   version: 1.0.0
-  description: Documentation for creating and viewing products
+  description: Product catalog management for admins and users.
+tags:
+  - name: Product
+    description: Add, query, filter, and update catalog products.
 
 paths:
   /api/v1/product/create:
     post:
       summary: Create a product
+      description: Creates a product for the authenticated admin and uploads up to six product images.
       tags:
         - Product
       security:
@@ -63,38 +66,46 @@ paths:
                 productPhoto:
                   type: array
                   maxItems: 6
+                  description: Up to 6 product image files.
                   items:
                     type: string
                     format: binary
-                  description: Up to 6 product image files.
       responses:
         "201":
-          description: Product created successfully
+          description: Product created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductCreateResponse'
         "400":
-          description: Invalid request body or missing product image
+          description: Invalid payload, missing product image, or validation error.
         "401":
-          description: Token missing or invalid
+          description: Token missing or invalid.
         "403":
-          description: Access denied; admin role required
+          description: Access denied; admin role required.
         "404":
-          description: Admin not found
+          description: Admin not found.
         "500":
-          description: Something went wrong
+          description: Something went wrong.
 
   /api/v1/product/getAllProducts:
     get:
-      summary: Get all products for the authenticated user
+      summary: Get all products
+      description: Returns every available product in the catalog for an authenticated user.
       tags:
         - Product
       security:
         - cookieAuth: []
       responses:
         "200":
-          description: Successfully returned all products
+          description: Products fetched successfully.
           content:
             application/json:
               schema:
                 type: object
+                required:
+                  - count
+                  - products
                 properties:
                   count:
                     type: integer
@@ -104,28 +115,32 @@ paths:
                     items:
                       $ref: '#/components/schemas/Product'
         "401":
-          description: Token missing or invalid
+          description: Token missing or invalid.
         "403":
-          description: Access denied; user role required
+          description: Access denied; user role required.
         "404":
-          description: User not found
+          description: User not found.
         "500":
-          description: Something went wrong
+          description: Something went wrong.
 
   /api/v1/product/getAllProductsForAdmin:
     get:
       summary: Get products created by the authenticated admin
+      description: Lists all products created by the current admin account.
       tags:
         - Product
       security:
         - cookieAuth: []
       responses:
         "200":
-          description: Successfully returned the admin's products
+          description: Admin products fetched successfully.
           content:
             application/json:
               schema:
                 type: object
+                required:
+                  - count
+                  - products
                 properties:
                   count:
                     type: integer
@@ -135,13 +150,185 @@ paths:
                     items:
                       $ref: '#/components/schemas/Product'
         "400":
-          description: Admin ID is missing from the token
+          description: Admin ID is missing from the token.
         "401":
-          description: Token missing or invalid
+          description: Token missing or invalid.
         "403":
-          description: Access denied; admin role required
+          description: Access denied; admin role required.
         "500":
-          description: Something went wrong
+          description: Something went wrong.
+
+  /api/v1/product/getByCategory:
+    get:
+      summary: Get products by category
+      description: Returns products matching the selected category.
+      tags:
+        - Product
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: category
+          required: true
+          description: Product category to filter by.
+          schema:
+            type: string
+            enum:
+              - Health
+              - Audio
+              - Living
+              - Wearables
+              - DeskSetupAndPeripherals
+          example: Audio
+      responses:
+        "200":
+          description: Products fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                  - products
+                properties:
+                  message:
+                    type: string
+                    example: Products fetched successfully
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        "401":
+          description: Token missing or invalid.
+        "403":
+          description: Access denied; user role required.
+        "404":
+          description: No products found in this category or user not found.
+        "500":
+          description: Internal server error.
+
+  /api/v1/product/getOne/{id}:
+    get:
+      summary: Get a single product
+      description: Returns a specific product by its ID.
+      tags:
+        - Product
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: UUID of the product.
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        "200":
+          description: Product fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                  - product
+                properties:
+                  message:
+                    type: string
+                    example: Gotten one product successfully
+                  product:
+                    $ref: '#/components/schemas/Product'
+        "401":
+          description: Token missing or invalid.
+        "403":
+          description: Access denied; user role required.
+        "404":
+          description: User not found or product not found.
+        "500":
+          description: Internal server error.
+
+  /api/v1/product/update/{id}:
+    put:
+      summary: Update a product
+      description: Updates the details of an existing product created by the authenticated admin.
+      tags:
+        - Product
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: UUID of the product to update.
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productTitle:
+                  type: string
+                  minLength: 3
+                  maxLength: 100
+                  example: Updated Wireless Headphones
+                category:
+                  type: string
+                  enum:
+                    - Health
+                    - Audio
+                    - Living
+                    - Wearables
+                    - DeskSetupAndPeripherals
+                  example: Audio
+                description:
+                  type: string
+                  minLength: 10
+                  maxLength: 1000
+                  example: Updated premium over-ear headphones with a better battery life.
+                quantity:
+                  type: integer
+                  minimum: 1
+                  example: 40
+                colour:
+                  type: string
+                  minLength: 2
+                  pattern: '^[A-Za-z\s-]+$'
+                  example: Silver
+                price:
+                  type: integer
+                  minimum: 1
+                  example: 42000
+      responses:
+        "200":
+          description: Product updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                  - updatedProduct
+                properties:
+                  message:
+                    type: string
+                    example: Product updated successfully
+                  updatedProduct:
+                    $ref: '#/components/schemas/Product'
+        "401":
+          description: Token missing or invalid.
+        "403":
+          description: Access denied; admin role required.
+        "404":
+          description: Admin not found or product not found.
+        "500":
+          description: Internal server error.
 
 components:
   securitySchemes:
@@ -153,12 +340,25 @@ components:
   schemas:
     Product:
       type: object
+      required:
+        - id
+        - productTitle
+        - category
+        - description
+        - quantity
+        - colour
+        - price
+        - productPhoto
+        - adminId
+        - createdAt
+        - updatedAt
       properties:
         id:
           type: string
           format: uuid
         productTitle:
           type: string
+          example: Wireless Noise Cancelling Headphones
         category:
           type: string
           enum:
@@ -169,22 +369,41 @@ components:
             - DeskSetupAndPeripherals
         description:
           type: string
+          example: Premium over-ear headphones with immersive sound and a 30-hour battery life.
         quantity:
           type: integer
+          example: 25
         colour:
           type: string
+          example: Black
         price:
           type: integer
+          example: 35000
         productPhoto:
           type: array
           items:
             type: string
             format: uri
+          example:
+            - https://res.cloudinary.com/demo/image/upload/v1/assets/headphones.jpg
         adminId:
           type: string
+          format: uuid
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    ProductCreateResponse:
+      type: object
+      required:
+        - message
+        - product
+      properties:
+        message:
+          type: string
+          example: Product created successfully
+        product:
+          $ref: '#/components/schemas/Product'
