@@ -33,7 +33,9 @@ const options = {
       "./docs/user.yaml",
       "./docs/admin.yaml",
         "./docs/product.yaml",
-        "./docs/cart.yaml"
+        "./docs/cart.yaml",
+        "./docs/order.yaml",
+        "./docs/delivery.yaml",
     ]
 }
 

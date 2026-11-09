@@ -91,14 +91,12 @@ paths:
   /api/v1/product/getAllProducts:
     get:
       summary: Get all products
-      description: Returns every available product in the catalog for an authenticated user.
+      description: Returns every product in the catalog. This endpoint is public and does not require authentication.
       tags:
         - Product
-      security:
-        - cookieAuth: []
       responses:
         "200":
-          description: Products fetched successfully.
+          description: Products and total count fetched successfully.
           content:
             application/json:
               schema:
@@ -114,12 +112,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Product'
-        "401":
-          description: Token missing or invalid.
-        "403":
-          description: Access denied; user role required.
-        "404":
-          description: User not found.
         "500":
           description: Something went wrong.
 
