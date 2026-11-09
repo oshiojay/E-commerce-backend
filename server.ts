@@ -9,12 +9,14 @@ import userRoutes from "./routes/user"
 import adminRoutes from "./routes/admin"
 import productRoutes from "./routes/product"
 import cartRoutes from "./routes/cart"
+import orderRoutes from "./routes/order"
+import deliveryRoutes from "./routes/delivery"
 
  const app = express()
  app.use(express.json())
  const allowedOrigins = [
   process.env.FRONTEND_URL,
-  "http://localhost:5173",
+  "http://localhost:3000",
   "https://e-commerce-backend-0l5v.onrender.com",
 ].filter(Boolean) as string[];
 
@@ -33,6 +35,8 @@ app.use(
  app.use('/api/v1/admin', adminRoutes)
  app.use('/api/v1/product', productRoutes)
  app.use('/api/v1/cart', cartRoutes)
+ app.use('/api/v1/order', orderRoutes)
+ app.use('/api/v1/delivery', deliveryRoutes)
  const PORT = process.env.PORT
 
  const databaseConnection = async () => {

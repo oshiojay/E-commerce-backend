@@ -1,0 +1,267 @@
+openapi: 3.0.0
+info:
+  title: Novaxcape Delivery API
+  version: 1.0.0
+  description: Delivery creation for authenticated customers.
+tags:
+  - name: Delivery
+    description: Create delivery details for the authenticated user's orders.
+
+paths:
+  /api/v1/delivery/create/{orderId}:
+    post:
+      summary: Create delivery details for an order
+      description: Adds delivery contact and address details to an existing order belonging to the authenticated user. The delivery fee is currently zero; delivery method and status use their defaults.
+      tags:
+        - Delivery
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          description: UUID of the order to add delivery details to.
+          schema:
+            type: string
+            format: uuid
+          example: eeb32698-64ee-467e-b22f-65f6616336e5
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fullName
+                - streetAddress
+                - phoneNumber
+                - region
+                - area
+              properties:
+                fullName:
+                  type: string
+                  example: Ailakhu Oshiobughie
+                streetAddress:
+                  type: string
+                  example: 88 Idewu Street
+                phoneNumber:
+                  type: string
+                  example: "09136098981"
+                region:
+                  type: string
+                  description: Region enum value.
+                  enum:
+                    - Abia
+                    - Adamawa
+                    - AkwaIbom
+                    - Anambra
+                    - Bauchi
+                    - Bayelsa
+                    - Benue
+                    - Borno
+                    - CrossRiver
+                    - Delta
+                    - Ebonyi
+                    - Edo
+                    - Ekiti
+                    - Enugu
+                    - FCT
+                    - Gombe
+                    - Imo
+                    - Jigawa
+                    - Kaduna
+                    - Kano
+                    - Katsina
+                    - Kebbi
+                    - Kogi
+                    - Kwara
+                    - Lagos
+                    - Nasarawa
+                    - Niger
+                    - Ogun
+                    - Ondo
+                    - Osun
+                    - Oyo
+                    - Plateau
+                    - Rivers
+                    - Sokoto
+                    - Taraba
+                    - Yobe
+                    - Zamfara
+                  example: Lagos
+                area:
+                  type: string
+                  example: Olodi-Apapa
+      responses:
+        "201":
+          description: Delivery created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                  - delivery
+                properties:
+                  message:
+                    type: string
+                    example: Delivery created successfully
+                  delivery:
+                    $ref: '#/components/schemas/Delivery'
+        "401":
+          description: Authentication token is missing, invalid, expired, or the authenticated user was not found.
+        "403":
+          description: The authenticated account is not a user or the order belongs to another user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryError'
+              example:
+                error: You can only create delivery for your own orders
+        "404":
+          description: Order not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryError'
+              example:
+                error: Order not found
+        "500":
+          description: Something went wrong.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+
+  schemas:
+    Delivery:
+      type: object
+      required:
+        - id
+        - orderId
+        - fullName
+        - phoneNumber
+        - region
+        - area
+        - streetAddress
+        - method
+        - fee
+        - status
+        - estimatedFrom
+        - estimatedTo
+        - deliveredAt
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+          example: Ailakhu Oshiobughie
+        phoneNumber:
+          type: string
+          example: "09136098981"
+        region:
+          type: string
+          enum:
+            - Abia
+            - Adamawa
+            - AkwaIbom
+            - Anambra
+            - Bauchi
+            - Bayelsa
+            - Benue
+            - Borno
+            - CrossRiver
+            - Delta
+            - Ebonyi
+            - Edo
+            - Ekiti
+            - Enugu
+            - FCT
+            - Gombe
+            - Imo
+            - Jigawa
+            - Kaduna
+            - Kano
+            - Katsina
+            - Kebbi
+            - Kogi
+            - Kwara
+            - Lagos
+            - Nasarawa
+            - Niger
+            - Ogun
+            - Ondo
+            - Osun
+            - Oyo
+            - Plateau
+            - Rivers
+            - Sokoto
+            - Taraba
+            - Yobe
+            - Zamfara
+          example: Lagos
+        area:
+          type: string
+          example: Olodi-Apapa
+        streetAddress:
+          type: string
+          example: 88 Idewu Street
+        method:
+          type: string
+          enum:
+            - DOOR_DELIVERY
+            - PICKUP_STATION
+          example: DOOR_DELIVERY
+        fee:
+          type: integer
+          example: 0
+        status:
+          type: string
+          enum:
+            - PROCESSING
+            - OUT_FOR_DELIVERY
+            - READY_FOR_PICKUP
+            - DELIVERED
+            - FAILED
+          example: PROCESSING
+        estimatedFrom:
+          type: string
+          format: date-time
+          nullable: true
+        estimatedTo:
+          type: string
+          format: date-time
+          nullable: true
+        deliveredAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    DeliveryError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: Order not found

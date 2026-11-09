@@ -1,0 +1,172 @@
+openapi: 3.0.0
+info:
+  title: Novaxcape Order API
+  version: 1.0.0
+  description: Order creation for authenticated customers.
+tags:
+  - name: Order
+    description: Create orders from the authenticated user's cart.
+
+paths:
+  /api/v1/order/create:
+    post:
+      summary: Create an order from the cart
+      description: Creates an order for the authenticated user using all items in their cart. The subtotal is the sum of item prices, tax is 7.2% of the subtotal rounded to the nearest integer, and total is subtotal plus tax. Items exceeding available stock prevent order creation.
+      tags:
+        - Order
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "201":
+          description: Order created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                  - order
+                properties:
+                  message:
+                    type: string
+                    example: Order created successfully
+                  order:
+                    $ref: '#/components/schemas/Order'
+        "400":
+          description: The cart is empty or an item quantity exceeds available stock.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderError'
+              examples:
+                emptyCart:
+                  summary: Empty cart
+                  value:
+                    error: Cart is empty
+                outOfStock:
+                  summary: Insufficient stock
+                  value:
+                    error: OUT_OF_STOCK:Wireless Headphones
+        "401":
+          description: Authentication token is missing, invalid, expired, or the authenticated user was not found.
+        "403":
+          description: The authenticated account is not a user.
+        "500":
+          description: Something went wrong.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+
+  schemas:
+    Order:
+      type: object
+      required:
+        - id
+        - userId
+        - items
+        - subtotal
+        - shipping
+        - tax
+        - total
+        - status
+        - paymentRef
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        subtotal:
+          type: integer
+          description: Sum of each ordered item's unit price multiplied by its quantity.
+          example: 70000
+        shipping:
+          type: integer
+          description: Shipping amount; defaults to zero.
+          example: 0
+        tax:
+          type: integer
+          description: Tax amount, calculated as 7.2% of the subtotal rounded to the nearest integer.
+          example: 5040
+        total:
+          type: integer
+          description: Subtotal plus tax.
+          example: 75040
+        status:
+          type: string
+          enum:
+            - PENDING
+            - PAID
+            - SHIPPED
+            - DELIVERED
+            - CANCELLED
+            - REFUNDED
+          example: PENDING
+        paymentRef:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    OrderItem:
+      type: object
+      required:
+        - id
+        - orderId
+        - productId
+        - adminId
+        - productTitle
+        - unitPrice
+        - quantity
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+          nullable: true
+        adminId:
+          type: string
+          format: uuid
+        productTitle:
+          type: string
+          description: Product title captured when the order was created.
+        unitPrice:
+          type: integer
+          description: Product price captured when the order was created.
+        quantity:
+          type: integer
+          minimum: 1
+
+    OrderError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: Cart is empty

@@ -14,7 +14,7 @@ router.post(
   createProductValidation,
   createProduct
 );
-router.get("/getAllProducts", authenticateToken, userAuth, getAllForUser);
+router.get("/getAllProducts", getAllForUser);
 
 router.get("/getAllProductsForAdmin", authenticateToken, adminAuth, getAllForAdmin);
 

@@ -75,12 +75,6 @@ const photoUrls = uploads.map((u) => u.secure_url);
 
 export const getAllForUser = async (req: Request, res: Response) => {
   try {
-    const userId = (req.user as JwtPayload).id;
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     const products = await prisma.product.findMany({
       orderBy: { createdAt: "desc" },
     });
